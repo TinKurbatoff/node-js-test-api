@@ -28,7 +28,28 @@ let createTables = new creteAllTables(client);
 // client.disconnect();
 
 app.post('/shipment', async (req: any, res: any) => {
-  // console.log(req.body);
+  // {
+  //   type: 'SHIPMENT',
+  //   referenceId: 'S00001175',
+  //   organizations: [ 'SEA', 'BOG', 'FMT' ],
+  //   transportPacks: { nodes: [ [Object] ] }
+  // }
+  // console.log(req.body)   
+  let shipmentInfo = req.body;
+  // console.log(shipmentInfo);
+  console.log(shipmentInfo.type);
+  console.log(shipmentInfo.referenceId);
+  console.log(shipmentInfo.organizations);
+  console.log(`Organizations: ${shipmentInfo.organizations.length}`);
+  console.log(`Nodes: ${shipmentInfo.transportPacks.nodes.length}`);
+  // Parse organizations
+  shipmentInfo.organizations.forEach( (item: string) => {
+    console.log(item);
+    })
+  // Parse packes
+    shipmentInfo.transportPacks.nodes.forEach( (item: any) => {
+    console.log(item.totalWeight);
+    })    
   res.status(200).json({ result: 'OK', endpoint: '/shipment' })
 })
 
@@ -77,6 +98,14 @@ app.get('/organizations/:organizationId', (req: any, res: any) => {
   // console.log(req.body);
   res.status(200).json({ result: 'OK', endpoint: '/organizations/:organizationId'  })
 })
+
+// Error handling middleware that Express will call
+// in the event of malformed JSON.
+app.use(function(err: { message: any; }, req: any, res: any, next: (arg0: any) => void) {
+  // 'SyntaxError: Unexpected token n in JSON at position 0'
+  console.log(err.message);
+  next(err);
+});
 
 app.listen(port, () => {
   console.log(`❤️ Logixboard listening at http://localhost:${port}`)
