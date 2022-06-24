@@ -1,6 +1,6 @@
-const express = require('express')
 const bodyParser = require("body-parser");
-var pg = require("pg");
+const express = require('express')
+const pg = require("pg");
 
 import { FileLogger } from "typeorm";
 // Importing the class that builds model of datatbase
@@ -12,8 +12,10 @@ const port = 3000
 const DATABASE = "logixboard_api"
 
 console.log(`🐌🐌🐌🦌   Connecting to database ${DATABASE}...`)
-var client = new pg.Client({
-  user: "logixboard",
+// var client = new pg.Client({  // ** Disabled **
+const pool = new pg.Pool({ // Let use Pooling now
+  // In production I will use environment variables
+  user: "logixboard", 
   password: "logixboard!2000",
   database: DATABASE,
   port: 5432,
@@ -23,9 +25,14 @@ var client = new pg.Client({
 
   
 // Creating our DB model (if not exists)
-client.connect();
-let createTables = new creteAllTables(client);
+// client.connect();
+let createTables = new creteAllTables(pool);
 // client.disconnect();
+
+// Just presents itself
+app.get('/', (req: any, res: { json: (arg0: { info: string; }) => void; }) => {
+  res.json({ info: 'Node.js, Express, and Postgres API for shipments' })
+})
 
 app.post('/shipment', async (req: any, res: any) => {
   // {
@@ -39,18 +46,21 @@ app.post('/shipment', async (req: any, res: any) => {
   // console.log(shipmentInfo);
   console.log(shipmentInfo.type);
   console.log(shipmentInfo.referenceId);
-  console.log(shipmentInfo.organizations);
+  // console.log(shipmentInfo.organizations);
   console.log(`Organizations: ${shipmentInfo.organizations.length}`);
   console.log(`Nodes: ${shipmentInfo.transportPacks.nodes.length}`);
+  
   // Parse organizations
-  shipmentInfo.organizations.forEach( (item: string) => {
-    console.log(item);
+  shipmentInfo.organizations.forEach( (orgs: string) => {
+      console.log(orgs);
     })
+  
   // Parse packes
-    shipmentInfo.transportPacks.nodes.forEach( (item: any) => {
-    console.log(item.totalWeight);
+  shipmentInfo.transportPacks.nodes.forEach( (pack: any) => {
+    console.log(pack.totalWeight);
     })    
-  res.status(200).json({ result: 'OK', endpoint: '/shipment' })
+  
+    res.status(200).json({ result: 'OK', endpoint: '/shipment' })
 })
 
 app.post('/organization', (req: any, res: any) => {
@@ -61,7 +71,7 @@ app.post('/organization', (req: any, res: any) => {
                                 ON CONFLICT (uuid) \
                                 DO UPDATE SET code = $2 \
                                 RETURNING *;`
-  client.query(upsertString, [id, code],
+  pool.query(upsertString, [id, code],
         (error: any, results: { rows: { id: any; }[]; }) => {
           if (error) {
             throw error

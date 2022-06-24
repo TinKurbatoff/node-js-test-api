@@ -48,3 +48,8 @@ export class creteAllTables {
         });
     // client.end();
 }}
+
+export class aShipment {
+
+
+    }
