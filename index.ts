@@ -4,12 +4,17 @@ const pg = require("pg");
 
 import { FileLogger } from "typeorm";
 // Importing the class that builds model of datatbase
-import { creteAllTables } from "./model";
+import { creteAllTables, shipmentHandler } from "./model";
 
 const app = express()  // Okay use `express` web server... Why not Koa? Lighter and with proper async support
-app.use(bodyParser.json());
 const port = 3000
 const DATABASE = "logixboard_api"
+
+app.use(bodyParser.json());
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+  }))
 
 console.log(`🐌🐌🐌🦌   Connecting to database ${DATABASE}...`)
 // var client = new pg.Client({  // ** Disabled **
@@ -23,11 +28,20 @@ const pool = new pg.Pool({ // Let use Pooling now
   ssl: false,
 });
 
-  
+// the pool with emit an error on behalf of any idle clients
+// it contains if a backend error or network partition happens
+pool.on('error', (err: any, client: any) => {
+  console.error('Unexpected error on idle client', err) // your callback here
+  process.exit(-1)
+})
+ 
+pool.connect()
 // Creating our DB model (if not exists)
 // client.connect();
-let createTables = new creteAllTables(pool);
+let createTables = new creteAllTables();
+createTables.createTables(pool);
 // client.disconnect();
+
 
 // Just presents itself
 app.get('/', (req: any, res: { json: (arg0: { info: string; }) => void; }) => {
@@ -35,32 +49,10 @@ app.get('/', (req: any, res: { json: (arg0: { info: string; }) => void; }) => {
 })
 
 app.post('/shipment', async (req: any, res: any) => {
-  // {
-  //   type: 'SHIPMENT',
-  //   referenceId: 'S00001175',
-  //   organizations: [ 'SEA', 'BOG', 'FMT' ],
-  //   transportPacks: { nodes: [ [Object] ] }
-  // }
-  // console.log(req.body)   
-  let shipmentInfo = req.body;
-  // console.log(shipmentInfo);
-  console.log(shipmentInfo.type);
-  console.log(shipmentInfo.referenceId);
-  // console.log(shipmentInfo.organizations);
-  console.log(`Organizations: ${shipmentInfo.organizations.length}`);
-  console.log(`Nodes: ${shipmentInfo.transportPacks.nodes.length}`);
-  
-  // Parse organizations
-  shipmentInfo.organizations.forEach( (orgs: string) => {
-      console.log(orgs);
-    })
-  
-  // Parse packes
-  shipmentInfo.transportPacks.nodes.forEach( (pack: any) => {
-    console.log(pack.totalWeight);
-    })    
-  
-    res.status(200).json({ result: 'OK', endpoint: '/shipment' })
+    let shipment = new shipmentHandler();
+    let updateResult = shipment.createShipment(req.body, pool);
+    console.log(`Updated field id:${updateResult} `);
+    res.status(200).json({ result: 'OK', endpoint: '/shipment' });
 })
 
 app.post('/organization', (req: any, res: any) => {
