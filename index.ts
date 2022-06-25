@@ -4,7 +4,7 @@ const pg = require("pg");
 
 import { FileLogger } from "typeorm";
 // Importing the class that builds model of datatbase
-import { creteAllTables, Shipment, Organization } from "./model";
+import { creteAllTables, Shipment, Organization, TransportPack } from "./model";
 
 const app = express()  // Okay use `express` web server... Why not Koa? Lighter and with proper async support
 const port = 3000
@@ -16,8 +16,8 @@ app.use(
     extended: true,
   }))
 
-console.log(`🐌🐌🐌🦌   Connecting to database ${DATABASE}...`)
 // var client = new pg.Client({  // ** Disabled **
+console.log(`🐌🐌🐌🦌   Connecting to database ${DATABASE}...`)
 const pool = new pg.Pool({ // Let use Pooling now
   // In production I will use environment variables
   user: "logixboard", 
@@ -28,54 +28,48 @@ const pool = new pg.Pool({ // Let use Pooling now
   ssl: false,
 });
 
-// the pool with emit an error on behalf of any idle clients
-// it contains if a backend error or network partition happens
+// emit an error on behalf of any idle clients
+// if a backend error or network partition happens
 pool.on('error', (err: any, client: any) => {
-  console.error('Unexpected error on idle client', err) // your callback here
+  console.error('Unexpected error on idle client', err) // just report to console
   process.exit(-1)
-})
- 
+}) 
+
+// Connect
 pool.connect()
+
 // Creating our DB model (if not exists)
-// client.connect();
-let createTables = new creteAllTables();
-createTables.createTables(pool);
-// client.disconnect();
+let createTables = new creteAllTables(pool);
+createTables.createTables();
 
-
-// Just presents itself
+/* ————————————————————— ENDPOINTS ——————————————————————— */
+// API just presents itself (will populate with swagger)
 app.get('/', (req: any, res: { json: (arg0: { info: string; }) => void; }) => {
   res.json({ info: 'Node.js, Express, and Postgres API for shipments' })
 })
 
 app.post('/shipment', async (req: any, res: any) => {
-    let shipment = new Shipment();
-    let updateResult = await shipment.createShipment(req.body, pool);
-    console.log(`Updated field id:${updateResult} `);
-    console.log(`———— REQUEST HANDLED OK BYE! BYE! ———— `);
-    res.status(200).json({ result: 'OK', endpoint: '/shipment' });
+    let shipment = new Shipment(pool);
+    console.log(req.body)
+    if ('referenceId' in req.body){
+      let updateResult = await shipment.createShipment(req.body);
+      console.log(`Updated field id:${updateResult} `);
+      console.log(`———— REQUEST HANDLED OK BYE! BYE! ———— `);
+      res.status(200).json({ result: 'OK', endpoint: '/shipment' });
+    } else {
+      res.status(401).json({ result: 'FAIL', message:'No referenceId', endpoint: '/shipment' });
+    }
 })
 
-app.post('/organization', (req: any, res: any) => {
-  const { id, code } = req.body
-  //'INSERT INTO organizations (uuid, code) VALUES ($1, $2) RETURNING *'
-  let upsertString: string = `INSERT INTO organizations (uuid, code) \
-                                VALUES ($1, $2) \
-                                ON CONFLICT (uuid) \
-                                DO UPDATE SET code = $2 \
-                                RETURNING *;`
-  pool.query(upsertString, [id, code],
-        (error: any, results: { rows: { id: any; }[]; }) => {
-          if (error) {
-            throw error
-            }
-          // console.log(results);
-          let resultString: string = `Organization added/updated with ID: ${results.rows[0].id}` 
-          console.log(resultString);
-          res.status(201).send(resultString);
-        })  
+app.post('/organization', async (req: any, res: any) => {
+  const organization = new Organization(pool);
   // console.log(req.body);
   // res.status(200).json({ result: 'OK', endpoint: '/organization' })
+  let results = await organization.createOrganization(req.body)
+  let resultString: string = `Organization added/updated with ID: ${results[0].id}` 
+  console.log(`🏢 ${resultString}`);
+  console.log(`———— REQUEST HANDLED OK BYE! BYE! ———— `);
+  res.status(201).send(resultString);
 })
 
 app.get('/shipments/', (req: any, res: any) => {
@@ -110,5 +104,5 @@ app.use(function(err: { message: any; }, req: any, res: any, next: (arg0: any) =
 });
 
 app.listen(port, () => {
-  console.log(`❤️ Logixboard listening at http://localhost:${port}`)
+  console.log(`❤️ Logixboard is listening at http://localhost:${port} with love!`)
 })
