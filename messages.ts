@@ -138,4 +138,36 @@ export const messages = [
       ]
     }
   },
+  {
+    "type": "SHIPMENT",
+    "referenceId": "S00001167",
+    "organizations": ["SEA", "NAM"],
+    "estimatedTimeArrival": "2020-11-21T00:00:00",
+    "transportPacks": {
+      "nodes": [
+        {
+          "totalWeight": {
+            "weight": "290",
+            "unit": "KILOGRAMS"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "type": "SHIPMENT",
+    "referenceId": "S00001128",
+    "organizations": ["NAM"],
+    "estimatedTimeArrival": "2021-11-20T00:00:00",
+    "transportPacks": {
+      "nodes": [
+        {
+          "totalWeight": {
+            "weight": "8",
+            "unit": "POUNDS"
+          }
+        }
+      ]
+    }
+  },
 ]

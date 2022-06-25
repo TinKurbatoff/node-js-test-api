@@ -4,7 +4,7 @@ const pg = require("pg");
 
 import { FileLogger } from "typeorm";
 // Importing the class that builds model of datatbase
-import { creteAllTables, shipmentHandler } from "./model";
+import { creteAllTables, Shipment, Organization } from "./model";
 
 const app = express()  // Okay use `express` web server... Why not Koa? Lighter and with proper async support
 const port = 3000
@@ -49,9 +49,10 @@ app.get('/', (req: any, res: { json: (arg0: { info: string; }) => void; }) => {
 })
 
 app.post('/shipment', async (req: any, res: any) => {
-    let shipment = new shipmentHandler();
-    let updateResult = shipment.createShipment(req.body, pool);
+    let shipment = new Shipment();
+    let updateResult = await shipment.createShipment(req.body, pool);
     console.log(`Updated field id:${updateResult} `);
+    console.log(`———— REQUEST HANDLED OK BYE! BYE! ———— `);
     res.status(200).json({ result: 'OK', endpoint: '/shipment' });
 })
 
@@ -101,8 +102,7 @@ app.get('/organizations/:organizationId', (req: any, res: any) => {
   res.status(200).json({ result: 'OK', endpoint: '/organizations/:organizationId'  })
 })
 
-// Error handling middleware that Express will call
-// in the event of malformed JSON.
+// Error handling middleware that Express will call in the event of malformed JSON.
 app.use(function(err: { message: any; }, req: any, res: any, next: (arg0: any) => void) {
   // 'SyntaxError: Unexpected token n in JSON at position 0'
   console.log(err.message);

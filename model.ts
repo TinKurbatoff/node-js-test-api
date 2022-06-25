@@ -61,14 +61,8 @@ public async createTables(pool: any) {
         
 }}
 
-export class shipmentHandler {
-    id: string;
-    referenceId: string;
-    organizations: Array<string>;
-    transportPacks: Array<string>;
-    estimatedTimeArrival: Date;
-
-    async queryPool(conn: any, queryString:string, params: any) {
+export class dbHandlerClass {
+    static async queryPool(conn: any, queryString:string, params: any) {
         return conn.query(queryString, params)
         .then( (res: any) => {
             // console.log(res.command)
@@ -83,35 +77,43 @@ export class shipmentHandler {
             })        
     }
 
+}
+
+
+export class Shipment {
+    id: string;
+    referenceId: string;
+    organizations: Array<string>;
+    transportPacks: Array<string>;
+    estimatedTimeArrival: Date;
 
     public async createShipment(shipmentInfo: any, conn: any): Promise<string> {
-        // const { referenceId, organizations, transportPacks, estimatedTimeArrival } = data
+        // Shipment data request example
         // {
         //   type: 'SHIPMENT',
         //   referenceId: 'S00001175',
         //   organizations: [ 'SEA', 'BOG', 'FMT' ],
         //   transportPacks: { nodes: [ [Object] ] }
         // }        
-        // console.log(shipmentInfo);
-        console.log(shipmentInfo.type);
+        let queryPool = dbHandlerClass.queryPool;  // Static method to query DB
+        console.log(`type:${shipmentInfo.type}`);
         this.referenceId = shipmentInfo.referenceId;
         this.estimatedTimeArrival = shipmentInfo.estimatedTimeArrival;
-        console.log(this.referenceId);
+        console.log(`referenceId:${this.referenceId}`);
         var queryString:string = `INSERT INTO shipments (referenceId, estimatedTimeArrival) 
                                     VALUES ($1, $2) 
                                     ON CONFLICT (referenceId) 
                                     DO UPDATE SET estimatedTimeArrival = $2
                                     RETURNING *;`
 
-
-        var result = await this.queryPool(conn, queryString, [this.referenceId, this.estimatedTimeArrival])
+        var result = await queryPool(conn, queryString, [this.referenceId, this.estimatedTimeArrival])
         this.id = result[0].id  // First row only
         console.log(`🔥🔥 this.id = ${this.id}`);     
         // console.log(shipmentInfo.organizations);
         // console.log(`Organizations: ${shipmentInfo.organizations.length}`);
         // console.log(`Nodes: ${shipmentInfo.transportPacks.nodes.length}`);
        
-        // Parse organizations
+        // ——— Parse organizations
         shipmentInfo.organizations.forEach( async (org: string) => {
             console.log(org);
             // Find related organization
@@ -119,34 +121,35 @@ export class shipmentHandler {
                            FROM organizations
                            WHERE code = $1;`
             
-            let ifOrg = await this.queryPool(conn, queryString, [org])
+            let ifOrg = await queryPool(conn, queryString, [org])
             // clear all connected organizations
             queryString = `DELETE FROM shipments_organizations WHERE shipment_id = $1;`
-            await this.queryPool(conn, queryString, [this.id])
+            await queryPool(conn, queryString, [this.id])
             // Add new                
             if (ifOrg.length !== 0) {
                 let organizationId = ifOrg[0].id
                 var queryString = `INSERT INTO shipments_organizations (shipment_id, organization_id) \
                                         VALUES ($1, $2) \
                                         ON CONFLICT (shipment_id, organization_id) DO NOTHING;`
-                await this.queryPool(conn, queryString, [this.id, organizationId])
+                await queryPool(conn, queryString, [this.id, organizationId])
                 }
             }) 
-        // Parse packs
+
+        // ———— Parse packs
         queryString = `DELETE FROM transportPacks WHERE shipment_id = $1;`
-        await this.queryPool(conn, queryString, [this.id])
+        await queryPool(conn, queryString, [this.id])
         // Add new info about packs
         shipmentInfo.transportPacks.nodes.forEach( async (pack: any) => {
             console.log(pack.totalWeight);
             let queryString = `INSERT INTO transportPacks (shipment_id, weight, unit) 
                                         VALUES ($1, $2, $3);`
             // console.log(`🎱 shipmentId:${this.id}`)
-            await this.queryPool(conn, queryString, [this.id, pack.totalWeight.weight, pack.totalWeight.unit])
+            await queryPool(conn, queryString, [this.id, pack.totalWeight.weight, pack.totalWeight.unit])
             })
         return this.id; 
     }
 }
 
-export class anOrganization {
+export class Organization {
 
     }    
