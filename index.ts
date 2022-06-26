@@ -1,55 +1,34 @@
+// import CommonJS modules
 const bodyParser = require("body-parser");
 const express = require('express')
-const pg = require("pg");
+const creteAllTables = require("./database/seedDb")
+const pool = require("./database/connect")
 
-import { FileLogger } from "typeorm";
-// Importing the class that builds model of datatbase
-import { creteAllTables, Shipment, Organization, TransportPack } from "./model";
+// Importing the class that builds model of datatbase (Supported since NodeJS V13+)
+import { Shipment, Organization, TransportPack } from "./model";
+// import { FileLogger } from "typeorm";  // Decide not to use ORM 
 
 const app = express()  // Okay use `express` web server... Why not Koa? Lighter and with proper async support
 const port = 3000
-const DATABASE = "logixboard_api"
 
 app.use(bodyParser.json());
-app.use(
-  bodyParser.urlencoded({
-    extended: true,
-  }))
+app.use(bodyParser.urlencoded({extended: true,}))  // may not be used, but keep it
 
-// var client = new pg.Client({  // ** Disabled **
-console.log(`🐌🐌🐌🦌   Connecting to database ${DATABASE}...`)
-const pool = new pg.Pool({ // Let use Pooling now
-  // In production I will use environment variables
-  user: "logixboard", 
-  password: "logixboard!2000",
-  database: DATABASE,
-  port: 5432,
-  host: "localhost",
-  ssl: false,
-});
-
-// emit an error on behalf of any idle clients
-// if a backend error or network partition happens
-pool.on('error', (err: any, client: any) => {
-  console.error('Unexpected error on idle client', err) // just report to console
-  process.exit(-1)
-}) 
-
-// Connect
-pool.connect()
-
-// Creating our DB model (if not exists)
-let createTables = new creteAllTables(pool);
-createTables.createTables();
+// Creating our DB model (if not exists) — SEED DATABASE
+const CreteTablesClass = new creteAllTables(pool) // Initilize DB settings
+CreteTablesClass.createTables(); // Create all tables
 
 /* ————————————————————— ENDPOINTS ——————————————————————— */
 // API just presents itself (will populate with swagger)
+
 app.get('/', (req: any, res: { json: (arg0: { info: string; }) => void; }) => {
+  /* Just reply to strangers */
   res.json({ info: 'Node.js, Express, and Postgres API for shipments' })
 })
 
 app.post('/shipment', async (req: any, res: any) => {
-    let shipment = new Shipment(pool);
+    /* Save new shipment to a database */
+    const shipment = new Shipment(pool);
     console.log(req.body)
     if ('referenceId' in req.body){
       let updateResult = await shipment.createShipment(req.body);
@@ -75,25 +54,27 @@ app.post('/organization', async (req: any, res: any) => {
 
 app.get('/packs/:unit?', async (req: any, res: any) => {
   // console.log(req.body);
-  var limit: number = +req.query.limit || 1000
-  let unitsSelected = req.params.unit || "N/A"
-  var resultMessage:string;
-  var httpCode: number = 401
-  var result: string = 'FAIL'
+  const limit = req.query.limit > 0 ? req.query.limit : 1000
+  const unitsSelected = req.params?.unit
+  let resultMessage:string;
+  let httpCode: number = 401
+  let result: string = 'FAIL'
   console.log(`units:${unitsSelected}`)
-  let allUnits= await TransportPack.getAllUnits(pool)
+  const allUnits= await TransportPack.getAllUnits(pool) // Get all units available in DB
   if (!allUnits.includes(unitsSelected)) {
     // Failed request — ask for details
     resultMessage = `select units from list:[${allUnits}]`
-    } 
-  else {
+    
+    } else {
     // Find all packs and calculate total weight
     console.log(`📦  Total weight in ${unitsSelected} requested!`)
     resultMessage = await new TransportPack(pool).getAllPacksWeight(unitsSelected, limit)
     httpCode = 200  
     result = 'OK'
     }
-  console.log(`All packs`)
+  
+  
+    console.log(`All packs`)
   res.status(httpCode).json({ result: result, message: resultMessage, endpoint: `/packs/:unit?limit=${limit}` })
 })
 
