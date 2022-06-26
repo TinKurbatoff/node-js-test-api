@@ -81,13 +81,18 @@ app.post('/organization', async (req: any, res: any) => {
 app.get('/packs/:unit?', async (req: any, res: any) => {
   // console.log(req.body);
   let unitsSelected = req.params.unit
-  var resultMessage = 'select units'
+  var resultMessage:string;
   console.log(`units:${unitsSelected}`)
+  
   if (typeof unitsSelected !== "undefined") {
-    console.log(`units ${unitsSelected} requested!`)
     const transportPack = new TransportPack(pool);
+    console.log(`units ${unitsSelected} requested!`)
     resultMessage = await transportPack.getAllPacksWeight(unitsSelected)
     // resultMessage = `units ${unitsSelected} requested!`
+    }
+  else {
+     let allUnits= await TransportPack.getAllUnits(pool)
+     resultMessage = `select units from list:[${allUnits}]`
     }
   console.log(`All packs`)
   res.status(200).json({ result: 'FAIL', message: resultMessage, endpoint: '/packs/:unit' })

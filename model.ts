@@ -344,15 +344,19 @@ export class TransportPack {
         this.pool = pool;
         }
 
+    static async getAllUnits(dbConnector:any) {
+        /* Iterate over conversion rates table to find all available units */
+        let queryString = `SELECT unit_from as all_units FROM unitConversions UNION (SELECT unit_to FROM unitConversions);`
+        let result = await dbHandlerClass.queryPool(dbConnector, queryString, [])        
+        return result.map((obj:any) => obj.all_units)
+        }
     
-    
-    public static async convertUnits(dbConnector:any, unitFrom: string, unitTo:string) {
-        // Find proper conversion rate
-        let queryPool = dbHandlerClass.queryPool;  // Static method to query DB
-        let queryString: string = `SELECT * FROM unitConversions
-                                    WHERE unit_from IN ($1, $2) AND unit_to IN ($1, $2);`
-        let conversionRate = await queryPool(dbConnector, queryString, [unitFrom, unitTo])        
-        console.log(conversionRate)
+    static async convertUnits(dbConnector:any, unitFrom: string, unitTo:string) {
+        /* Finds a proper weight units conversion rate and returns an exact rate */
+        let queryString = `SELECT * FROM unitConversions 
+                            WHERE unit_from IN ($1, $2) AND unit_to IN ($1, $2);`
+        let conversionRate = await dbHandlerClass.queryPool(dbConnector, queryString, [unitFrom, unitTo])        
+        // console.log(conversionRate) // *** Sanity Check ***
         if (conversionRate.length == 0) { return 0 }
         // Direct conversion from->to
         else if (conversionRate[0].unit_from == unitFrom) {return conversionRate[0].rate}
@@ -360,11 +364,17 @@ export class TransportPack {
         else {return (1 / conversionRate[0].rate).toFixed(6)}
         }
     
-    public async getAllPacks() {
-
+    static async getAllPacks(dbConnector:any, limit: number = 10) {
+        /* Locates all packs */
+        let queryString = `SELECT * FROM transportPacks 
+                            LIMIT $1;`
+        return await dbHandlerClass.queryPool(dbConnector, queryString, [limit])        
         }
     
     public async getAllPacksWeight(units: string) {
+        let allPacks = await TransportPack.getAllPacks(this.pool, 5)
+        console.log(allPacks)
+        // cacluclate totla weight
         let totalWeight = 50000 
         let fromUnits = "OUNCES"
         let rate = await TransportPack.convertUnits(this.pool, fromUnits, units)
