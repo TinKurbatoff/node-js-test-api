@@ -384,22 +384,23 @@ export class TransportPack {
             // console.log(allPacks) // *** Sanity check *** 
             
             // Prepare records and find full scope of units
-            let allUnitsFound = [...new Set(allPacks.map((obj:any) => obj.unit))].map((obj:string) => obj) // Only unique units
+            let allUnitsFound = [...new Set(allPacks.map((obj:any) => obj.unit))].map((obj:string) => obj) // Only unique units, then cast values to string
             // console.log(typeof allUnitsFound)  // ** Sanity check ***
             
             // Prepare conversion table
-            var conversionTable = {}; // remap
-            for (const myUnit of allUnitsFound) {
-                (conversionTable as any)[myUnit] = await TransportPack.convertUnits(this.pool, myUnit, units)}
+            var conversionTable: { [key: string]: number } = {}; // Conversion table for all founded packs
+            for (var myUnit of allUnitsFound) {
+                conversionTable[myUnit] = await TransportPack.convertUnits(this.pool, myUnit, units)}
             // console.log(conversionTable) // ** Sanity check ***
 
             // Iterate over all weights and caclulate total weight
             let allWeightsArray = allPacks.map((obj:any) => [obj.weight, obj.unit]) // Collect only weights
             // console.log(allWeightsArray) // ** Sanity check ***
             for (const [weight, unit] of allWeightsArray) {
+                // Iterate over all packs, add to total converting on the fly...
                 totalWeight += (weight * (conversionTable as any)[unit])
                 }
             }
-        return `${totalWeight.toFixed(2)} ${units}` 
+        return `${totalWeight.toFixed(2)} ${units}`  // limit two decimals
         }
 }
