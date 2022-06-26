@@ -83,16 +83,14 @@ app.get('/packs/:unit?', async (req: any, res: any) => {
   let unitsSelected = req.params.unit
   var resultMessage:string;
   console.log(`units:${unitsSelected}`)
-  
-  if (typeof unitsSelected !== "undefined") {
-    const transportPack = new TransportPack(pool);
-    console.log(`units ${unitsSelected} requested!`)
-    resultMessage = await transportPack.getAllPacksWeight(unitsSelected)
-    // resultMessage = `units ${unitsSelected} requested!`
-    }
+  let allUnits= await TransportPack.getAllUnits(pool)
+  if (typeof unitsSelected == "undefined" || !allUnits.includes(unitsSelected)) {
+    resultMessage = `select units from list:[${allUnits}]`
+    } 
   else {
-     let allUnits= await TransportPack.getAllUnits(pool)
-     resultMessage = `select units from list:[${allUnits}]`
+    console.log(`units ${unitsSelected} requested!`)
+    resultMessage = await new TransportPack(pool).getAllPacksWeight(unitsSelected)
+    // resultMessage = `units ${unitsSelected} requested!`
     }
   console.log(`All packs`)
   res.status(200).json({ result: 'FAIL', message: resultMessage, endpoint: '/packs/:unit' })
