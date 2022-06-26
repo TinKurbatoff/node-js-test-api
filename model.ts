@@ -338,9 +338,26 @@ export class TransportPack {
     id: string
     weight: number
     unit: string
+    pool: any;
 
-    public static convertUnits(unitFrom: string, unitTo:string) {
-        return 1.23
+    constructor(pool: any) {
+        this.pool = pool;
+        }
+
+    
+    
+    public static async convertUnits(dbConnector:any, unitFrom: string, unitTo:string) {
+        // Find proper conversion rate
+        let queryPool = dbHandlerClass.queryPool;  // Static method to query DB
+        let queryString: string = `SELECT * FROM unitConversions
+                                    WHERE unit_from IN ($1, $2) AND unit_to IN ($1, $2);`
+        let conversionRate = await queryPool(dbConnector, queryString, [unitFrom, unitTo])        
+        console.log(conversionRate)
+        if (conversionRate.length == 0) { return 0 }
+        // Direct conversion from->to
+        else if (conversionRate[0].unit_from == unitFrom) {return conversionRate[0].rate}
+        // Reverse conversion from<-to
+        else {return (1 / conversionRate[0].rate).toFixed(6)}
         }
     
     public async getAllPacks() {
@@ -348,10 +365,11 @@ export class TransportPack {
         }
     
     public async getAllPacksWeight(units: string) {
-        let totalWeight = 1000 // POUNDS
-        let fromUnits = "POUNDS"
-        let rate = TransportPack.convertUnits(fromUnits, units)
-        let converted = totalWeight / rate
+        let totalWeight = 50000 
+        let fromUnits = "OUNCES"
+        let rate = await TransportPack.convertUnits(this.pool, fromUnits, units)
+        console.log(`conversion rate:${rate}`)
+        let converted = (totalWeight * rate).toFixed(2)
         return `${converted} ${units}` 
         }
 }

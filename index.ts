@@ -78,11 +78,19 @@ app.post('/organization', async (req: any, res: any) => {
 //   res.status(404).json({ result: 'FAIL', message: 'shipmentID is empty', endpoint: '/shipments/:shipmentId' })
 // })
 
-app.get('/packs/:unit?', (req: any, res: any) => {
+app.get('/packs/:unit?', async (req: any, res: any) => {
   // console.log(req.body);
-  
+  let unitsSelected = req.params.unit
+  var resultMessage = 'select units'
+  console.log(`units:${unitsSelected}`)
+  if (typeof unitsSelected !== "undefined") {
+    console.log(`units ${unitsSelected} requested!`)
+    const transportPack = new TransportPack(pool);
+    resultMessage = await transportPack.getAllPacksWeight(unitsSelected)
+    // resultMessage = `units ${unitsSelected} requested!`
+    }
   console.log(`All packs`)
-  res.status(404).json({ result: 'FAIL', message: 'shipmentID is empty', endpoint: '/packs/:unit' })
+  res.status(200).json({ result: 'FAIL', message: resultMessage, endpoint: '/packs/:unit' })
 })
 
 
