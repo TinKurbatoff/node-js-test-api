@@ -84,7 +84,7 @@ export const messages = [
       "nodes": [
         {
           "totalWeight": {
-            "weight": "22690",
+            "weight": "86",
             "unit": "KILOGRAMS"
           }
         }
@@ -149,6 +149,12 @@ export const messages = [
           "totalWeight": {
             "weight": "290",
             "unit": "KILOGRAMS"
+          }
+        },
+        {
+          "totalWeight": {
+            "weight": "14",
+            "unit": "POUNDS"
           }
         }
       ]

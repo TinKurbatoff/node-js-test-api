@@ -69,7 +69,7 @@ app.post('/organization', async (req: any, res: any) => {
   let resultString: string = `Organization added/updated with ID: ${results[0].id}` 
   console.log(`🏢 ${resultString}`);
   console.log(`———— REQUEST HANDLED OK BYE! BYE! ———— `);
-  res.status(201).send(resultString);
+  res.status(201).json({ result: 'OK', message: resultString, endpoint: '/organization' })
 })
 
 app.get('/shipments/', (req: any, res: any) => {
@@ -79,10 +79,12 @@ app.get('/shipments/', (req: any, res: any) => {
 })
 
 
-app.get('/shipments/:shipmentId', (req: any, res: any) => {
+app.get('/shipments/:shipmentId', async (req: any, res: any) => {
   // console.log(req.body);
   console.log(`shipmentId:${req.params.shipmentId}`)
-  res.status(200).json({ result: 'OK', endpoint: '/shipments/:shipmentId' })
+  const shipment = new Shipment(pool);
+  let searchResult = await shipment.findShipment(req.params.shipmentId)
+  res.status(200).json({ result: 'OK', message: searchResult, endpoint: '/shipments/:shipmentId' })
 })
 
 app.get('/organizations/', (req: any, res: any) => {
@@ -91,7 +93,7 @@ app.get('/organizations/', (req: any, res: any) => {
   res.status(404).json({ result: 'FAIL', message: 'organizationId is empty', endpoint: '/organizations/:organizationId' })
 })
 
-app.get('/organizations/:organizationId', (req: any, res: any) => {
+app.get('/organizations/:organizationId', async (req: any, res: any) => {
   // console.log(req.body);
   res.status(200).json({ result: 'OK', endpoint: '/organizations/:organizationId'  })
 })

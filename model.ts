@@ -23,10 +23,10 @@ export class creteAllTables {
     conn: any;
     tablesSQL: Object = {
     // Clear DataBase
-    "01.Drop shipments": 'DROP TABLE IF EXISTS shipments CASCADE;',
-    "02.Drop transportPacks": 'DROP TABLE IF EXISTS transportPacks;',
-    "03.Drop organizations": 'DROP TABLE IF EXISTS organizations CASCADE;',
-    "04.Drop shipments_organizations": 'DROP TABLE IF EXISTS shipments_organizations;',
+    // "01.Drop shipments": 'DROP TABLE IF EXISTS shipments CASCADE;',
+    // "02.Drop transportPacks": 'DROP TABLE IF EXISTS transportPacks;',
+    // "03.Drop organizations": 'DROP TABLE IF EXISTS organizations CASCADE;',
+    // "04.Drop shipments_organizations": 'DROP TABLE IF EXISTS shipments_organizations;',
     // Shipments 
     "05.Create shipments": 'CREATE TABLE IF NOT EXISTS shipments (\
         id SERIAL PRIMARY KEY \
@@ -72,9 +72,10 @@ public async createTables() {
 
 export class Shipment {
     id: string;
+    type: string = "SHIPMENT"
     referenceId: string;
     organizations: Array<string>;
-    transportPacks: Array<string>;
+    transportPacks: Object;
     estimatedTimeArrival: Date;
     conn: any;
 
@@ -143,6 +144,83 @@ export class Shipment {
             })
         return this.id; 
     }
+
+    public async findShipment(shipmentId: string): Promise<any> {
+        let queryPool = dbHandlerClass.queryPool;  // Static method to query DB
+        // Joined request
+        // let queryString = `SELECT \ 
+        //                     sh.id \
+        //                     , referenceid\
+        //                     , estimatedTimeArrival\
+        //                     , tr_p.weight\
+        //                     , tr_p.unit\
+        //                     , org.code\
+        //                     , org.uuid\
+        //                     -- COUNT(tr_p.shipment_id) AS packs,
+        //                     -- COUNT(org.code) AS organizations
+        //                 FROM shipments AS sh                        
+        //                 JOIN shipments_organizations AS sh_or ON sh_or.shipment_id = sh.id
+        //                 JOIN organizations AS org ON org.id = sh_or.organization_id
+        //                 JOIN transportPacks AS tr_p ON tr_p.shipment_id = sh.id
+        //                 WHERE sh.referenceId = $1
+        //                 GROUP BY (sh.id, org.id, sh_or.shipment_id, sh_or.organization_id, tr_p.id)
+        //                 ORDER BY COUNT(org.id);`
+        // console.log(`🎱 shipmentId:${this.id}`)
+        let queryStringSp = `SELECT  
+                                id
+                            ,   referenceID
+                            ,   estimatedTimeArrival
+                            FROM shipments AS sh                        
+                            WHERE sh.referenceId = $1;`
+
+        let queryStringTp = `SELECT  
+                                tr_p.weight
+                            ,   tr_p.unit
+                            FROM shipments AS sh                        
+                            INNER JOIN transportPacks AS tr_p ON tr_p.shipment_id = sh.id
+                            WHERE sh.referenceId = $1
+                            ORDER BY tr_p.id;`
+
+        let queryStringOrgs = `SELECT  
+                                org.code
+                            FROM shipments AS sh                        
+                            INNER JOIN shipments_organizations AS sh_or ON sh_or.shipment_id = sh.id
+                            INNER JOIN organizations AS org ON org.id = sh_or.organization_id
+                            WHERE sh.referenceId = $1
+                            ORDER BY org.id;`
+        let queries = [queryStringSp, queryStringTp, queryStringOrgs]
+        var shipmentInfo = new Array()
+        // queries.forEach(async (queryString: string) => {  // Parallel queries — will not use 
+        console.log("———— GET FULL SHIPMENT INFO ———")
+        for (let queryString of queries) {
+            var shipmentInfo1 = await queryPool(this.conn, queryString, [shipmentId]);
+            // console.log(shipmentInfo1);
+            shipmentInfo.push(shipmentInfo1);
+            }
+        // console.log(shipmentInfo)  // ** Sanity check ***
+        let parsedShipmentInfo = {};
+        if (shipmentInfo[0].length > 0 ) {        
+            // There is a record — Parse it!
+            this.id = shipmentInfo[0][0].id;
+            this.referenceId = shipmentInfo[0][0].referenceid;
+            this.transportPacks = {'nodes': shipmentInfo[1]}
+            this.estimatedTimeArrival = shipmentInfo[0][0].estimatedtimearrival;
+            // Shipment data response example
+            // {
+            //   type: 'SHIPMENT',
+            //   referenceId: 'S00001175',
+            //   organizations: [ 'SEA', 'BOG', 'FMT' ],
+            //   transportPacks: { nodes: [ [Object] ] }
+            // }        
+
+            parsedShipmentInfo = { 'type': this.type,
+                                    'referenceId': this.referenceId,
+                                    'transportPacks': this.transportPacks,
+                                    'estimatedTimeArrival': this.estimatedTimeArrival
+                                }
+            }
+        return parsedShipmentInfo; 
+        }
 }
 
 export class Organization {
@@ -155,17 +233,57 @@ export class Organization {
         this.pool = pool;
         }
 
-    public async createOrganization(organizationInfo: {orgId: string, code: string}): Promise<any> {    
+    public async createOrganization(organizationInfo: {id: string, code: string}): Promise<any> {    
         let queryPool = dbHandlerClass.queryPool;  // Static method to query DB
-        //'INSERT INTO organizations (uuid, code) VALUES ($1, $2) RETURNING *'
-        const { orgId, code } = organizationInfo
+        console.log(organizationInfo)
+        const {id, code } = organizationInfo
         let upsertString: string = `INSERT INTO organizations (uuid, code) \
                                     VALUES ($1, $2) \
                                     ON CONFLICT (uuid) \
                                     DO UPDATE SET code = $2 \
                                     RETURNING *;`
-        return await queryPool(this.pool, upsertString, [orgId, code])
+        return await queryPool(this.pool, upsertString, [id, code])
         }
+
+    public async getOrganization(id: string, code: string): Promise<any> {    
+        let queryPool = dbHandlerClass.queryPool;  // Static method to query DB
+        // console.log(organizationInfo)  // *** Sanity check ***
+        const {id, code } = organizationInfo
+        let upsertString: string = `SELECT 
+                                    *
+                                    FROM organizations (uuid, code) 
+                                    WHERE uuid = $1 OR code = $2`
+        let organizationInfo = await queryPool(this.pool, upsertString, [id, code])
+        let parsedShipmentInfo = {};
+        if (shipmentInfo[0].length > 0 ) {        
+            // There is a record — Parse it!
+            this.id: string;
+            this.uuid: string;
+            this.code: string;
+        
+            this.id = shipmentInfo[0][0].id;
+            this.referenceId = shipmentInfo[0][0].referenceid;
+            this.transportPacks = {'nodes': shipmentInfo[1]}
+            this.estimatedTimeArrival = shipmentInfo[0][0].estimatedtimearrival;
+            // Shipment data response example
+            // {
+            //   type: 'SHIPMENT',
+            //   referenceId: 'S00001175',
+            //   organizations: [ 'SEA', 'BOG', 'FMT' ],
+            //   transportPacks: { nodes: [ [Object] ] }
+            // }        
+
+            parsedShipmentInfo = { 'type': this.type,
+                                    'referenceId': this.referenceId,
+                                    'transportPacks': this.transportPacks,
+                                    'estimatedTimeArrival': this.estimatedTimeArrival
+                                }
+            }
+        return parsedShipmentInfo; 
+        }
+    
 }    
 
-export class TransportPack {}
+export class TransportPack {
+
+}
