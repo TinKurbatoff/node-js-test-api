@@ -72,14 +72,20 @@ app.post('/organization', async (req: any, res: any) => {
   res.status(201).json({ result: 'OK', message: resultString, endpoint: '/organization' })
 })
 
-app.get('/shipments/', (req: any, res: any) => {
+// app.get('/shipments/', (req: any, res: any) => {
+//   // console.log(req.body);
+//   console.log(`All shipments`)
+//   res.status(404).json({ result: 'FAIL', message: 'shipmentID is empty', endpoint: '/shipments/:shipmentId' })
+// })
+
+app.get('/packs/:unit?', (req: any, res: any) => {
   // console.log(req.body);
-  console.log(`shipmentId:${req.params.shipmentId}`)
+  console.log(`All shipments`)
   res.status(404).json({ result: 'FAIL', message: 'shipmentID is empty', endpoint: '/shipments/:shipmentId' })
 })
 
 
-app.get('/shipments/:shipmentId', async (req: any, res: any) => {
+app.get('/shipments/:shipmentId?', async (req: any, res: any) => {
   // console.log(req.body);
   console.log(`shipmentId:${req.params.shipmentId}`)
   const shipment = new Shipment(pool);
@@ -87,17 +93,22 @@ app.get('/shipments/:shipmentId', async (req: any, res: any) => {
   res.status(200).json({ result: 'OK', message: searchResult, endpoint: '/shipments/:shipmentId' })
 })
 
-app.get('/organizations/', (req: any, res: any) => {
-  // console.log(req.body);
-  console.log(`organizationId:${req.params.shipmentId}`)
-  res.status(404).json({ result: 'FAIL', message: 'organizationId is empty', endpoint: '/organizations/:organizationId' })
-})
+// app.get('/organizations/', (req: any, res: any) => {
+//   // console.log(req.body);
+//   console.log(`All organizations`)
+//   res.status(404).json({ result: 'FAIL', message: 'organizationId is empty', endpoint: '/organizations/:organizationId' })
+// })
 
-app.get('/organizations/:organizationId', async (req: any, res: any) => {
+app.get('/organizations/:organizationId?', async (req: any, res: any) => {
   // console.log(req.body);
-  res.status(200).json({ result: 'OK', endpoint: '/organizations/:organizationId'  })
-})
+  const organization = new Organization(pool);
+  // console.log(req.body);
+  // res.status(200).json({ result: 'OK', endpoint: '/organization' })
+  let searchResult = await organization.getOrganization(req.params.organizationId, "N/A")
 
+  res.status(200).json({ result: 'OK', message: searchResult, endpoint: '/organizations/:organizationId'  })
+})
+/*  ——— ENDPOINTS DESCRIPTION END ————  */ 
 // Error handling middleware that Express will call in the event of malformed JSON.
 app.use(function(err: { message: any; }, req: any, res: any, next: (arg0: any) => void) {
   // 'SyntaxError: Unexpected token n in JSON at position 0'

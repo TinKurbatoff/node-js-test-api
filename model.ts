@@ -22,6 +22,15 @@ export class dbHandlerClass {
 export class creteAllTables {
     conn: any;
     tablesSQL: Object = {
+    // Create Create/Update timestamps
+    "Create Function": `CREATE OR REPLACE FUNCTION trigger_set_timestamp()
+                        RETURNS TRIGGER AS $$
+                        BEGIN
+                            NEW.updated_at = NOW();
+                            RETURN NEW;
+                        END;
+                        $$ LANGUAGE plpgsql;`,
+
     // Clear DataBase
     // "01.Drop shipments": 'DROP TABLE IF EXISTS shipments CASCADE;',
     // "02.Drop transportPacks": 'DROP TABLE IF EXISTS transportPacks;',
@@ -30,27 +39,51 @@ export class creteAllTables {
     // Shipments 
     "05.Create shipments": 'CREATE TABLE IF NOT EXISTS shipments (\
         id SERIAL PRIMARY KEY \
+        , created_at TIMESTAMPTZ NOT NULL DEFAULT NOW() \
+        , updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() \
         , referenceId VARCHAR(100) not null \
         , estimatedTimeArrival TIMESTAMP\
         , CONSTRAINT referenceId_unique UNIQUE (referenceId) );',
+    "05. Triger for update": `CREATE OR REPLACE TRIGGER set_timestamp
+        BEFORE UPDATE ON shipments
+        FOR EACH ROW
+        EXECUTE PROCEDURE trigger_set_timestamp();`,
     // All packs 
     "06.Create transportPacks": 'CREATE TABLE IF NOT EXISTS transportPacks (\
                 id SERIAL PRIMARY KEY \
+                , created_at TIMESTAMPTZ NOT NULL DEFAULT NOW() \
+                , updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() \
                 , shipment_id INTEGER NOT NULL REFERENCES shipments (id) \
                 , weight INTEGER \
                 , unit VARCHAR(100) NOT NULL);',
+    "06. Triger for update": `CREATE OR REPLACE TRIGGER set_timestamp
+    BEFORE UPDATE ON transportPacks
+    FOR EACH ROW
+    EXECUTE PROCEDURE trigger_set_timestamp();`,
     // Organizations   
     "07.Create organizations": 'CREATE TABLE IF NOT EXISTS organizations (\
                 id SERIAL PRIMARY KEY \
+                , created_at TIMESTAMPTZ NOT NULL DEFAULT NOW() \
+                , updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() \
                 , uuid VARCHAR(100) \
                 , code VARCHAR(100)\
                 , CONSTRAINT uuid_unique UNIQUE (uuid) );',
+    "07. Triger for update": `CREATE OR REPLACE TRIGGER set_timestamp
+                BEFORE UPDATE ON organizations
+                FOR EACH ROW
+                EXECUTE PROCEDURE trigger_set_timestamp();`,
     // Many 2 Many table              
     "08.Create shipments_organizations": 'CREATE TABLE IF NOT EXISTS shipments_organizations (\
-                shipment_id    INTEGER REFERENCES shipments (id) ON UPDATE CASCADE ON DELETE CASCADE\
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW() \
+            , updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() \
+            , shipment_id    INTEGER REFERENCES shipments (id) ON UPDATE CASCADE ON DELETE CASCADE\
             , organization_id INTEGER REFERENCES organizations (id) ON UPDATE CASCADE\
-            , CONSTRAINT shipments_organizations_pkey PRIMARY KEY (shipment_id, organization_id) );'
-    }
+            , CONSTRAINT shipments_organizations_pkey PRIMARY KEY (shipment_id, organization_id) );',
+    "08. Triger for update": `CREATE OR REPLACE TRIGGER set_timestamp
+            BEFORE UPDATE ON shipments_organizations
+            FOR EACH ROW
+            EXECUTE PROCEDURE trigger_set_timestamp();`,
+        }
 
     // Set connection 
     constructor(pool: any) {
@@ -224,6 +257,7 @@ export class Shipment {
 }
 
 export class Organization {
+    type = "ORGANIZATION"
     id: string;
     uuid: string;
     code: string;
@@ -245,41 +279,32 @@ export class Organization {
         return await queryPool(this.pool, upsertString, [id, code])
         }
 
-    public async getOrganization(id: string, code: string): Promise<any> {    
+    public async getOrganization(uuid: string, code: string): Promise<any> {    
         let queryPool = dbHandlerClass.queryPool;  // Static method to query DB
-        // console.log(organizationInfo)  // *** Sanity check ***
-        const {id, code } = organizationInfo
+        // console.log(uuid)  // *** Sanity check ***
         let upsertString: string = `SELECT 
                                     *
-                                    FROM organizations (uuid, code) 
-                                    WHERE uuid = $1 OR code = $2`
-        let organizationInfo = await queryPool(this.pool, upsertString, [id, code])
-        let parsedShipmentInfo = {};
-        if (shipmentInfo[0].length > 0 ) {        
+                                    FROM organizations
+                                    WHERE (uuid = $1) OR (code = $2);`
+        let organizationInfo = await queryPool(this.pool, upsertString, [uuid, code])
+        let parsedOrganizationInfo = {};
+        if (organizationInfo.length > 0 ) {        
             // There is a record — Parse it!
-            this.id: string;
-            this.uuid: string;
-            this.code: string;
-        
-            this.id = shipmentInfo[0][0].id;
-            this.referenceId = shipmentInfo[0][0].referenceid;
-            this.transportPacks = {'nodes': shipmentInfo[1]}
-            this.estimatedTimeArrival = shipmentInfo[0][0].estimatedtimearrival;
-            // Shipment data response example
+            this.id = organizationInfo[0].id
+            this.uuid = organizationInfo[0].uuid
+            this.code = organizationInfo[0].code
+            // Organization data response example
             // {
-            //   type: 'SHIPMENT',
-            //   referenceId: 'S00001175',
-            //   organizations: [ 'SEA', 'BOG', 'FMT' ],
-            //   transportPacks: { nodes: [ [Object] ] }
-            // }        
-
-            parsedShipmentInfo = { 'type': this.type,
-                                    'referenceId': this.referenceId,
-                                    'transportPacks': this.transportPacks,
-                                    'estimatedTimeArrival': this.estimatedTimeArrival
-                                }
+            //     "type": "ORGANIZATION",
+            //     "id": "381f5cc5-dfe4-4f58-98ad-116666855ca3",
+            //     "code": "SEA"
+            //   }
+            parsedOrganizationInfo = { 'type': this.type,
+                                    'id': this.uuid,
+                                    'code': this.code,
+                                    }
             }
-        return parsedShipmentInfo; 
+        return parsedOrganizationInfo; 
         }
     
 }    
