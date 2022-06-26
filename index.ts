@@ -80,8 +80,9 @@ app.post('/organization', async (req: any, res: any) => {
 
 app.get('/packs/:unit?', (req: any, res: any) => {
   // console.log(req.body);
-  console.log(`All shipments`)
-  res.status(404).json({ result: 'FAIL', message: 'shipmentID is empty', endpoint: '/shipments/:shipmentId' })
+  
+  console.log(`All packs`)
+  res.status(404).json({ result: 'FAIL', message: 'shipmentID is empty', endpoint: '/packs/:unit' })
 })
 
 
@@ -108,7 +109,8 @@ app.get('/organizations/:organizationId?', async (req: any, res: any) => {
 
   res.status(200).json({ result: 'OK', message: searchResult, endpoint: '/organizations/:organizationId'  })
 })
-/*  ——— ENDPOINTS DESCRIPTION END ————  */ 
+/*  ——— ENDPOINTS HANDLERS END ————  */ 
+
 // Error handling middleware that Express will call in the event of malformed JSON.
 app.use(function(err: { message: any; }, req: any, res: any, next: (arg0: any) => void) {
   // 'SyntaxError: Unexpected token n in JSON at position 0'
