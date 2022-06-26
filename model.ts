@@ -351,18 +351,24 @@ export class TransportPack {
         return result.map((obj:any) => obj.all_units)
         }
     
-    static async convertUnits(dbConnector:any, unitFrom: string, unitTo:string) {
+    static async convertUnits(dbConnector:any, unitFrom: string, unitTo:string): Promise<number> {
         /* Finds a proper weight units conversion rate and returns an exact rate */
+        if (unitFrom == unitTo) { return 1 } // Same unit
+        // Okay look into the table at the both sides of equation...
         let queryString = `SELECT * FROM unitConversions 
                             WHERE unit_from IN ($1, $2) AND unit_to IN ($1, $2);`
         let conversionRate = await dbHandlerClass.queryPool(dbConnector, queryString, [unitFrom, unitTo])        
         // console.log(conversionRate) // *** Sanity Check ***
-        if (conversionRate.length == 0) { return 0 }
+        if (conversionRate.length == 0) { return 0 } // Not found!
+        
         // Direct conversion from->to
-        else if (conversionRate[0].unit_from == unitFrom) {return conversionRate[0].rate}
+        else if (conversionRate[0].unit_from == unitFrom) {
+            return conversionRate[0].rate}
+        
         // Reverse conversion from<-to
-        else {return (1 / conversionRate[0].rate).toFixed(6)}
-        }
+        else {
+            return (1 / conversionRate[0].rate)}
+    }
     
     static async getAllPacks(dbConnector:any, limit: number = 10) {
         /* Locates all packs */
@@ -372,14 +378,28 @@ export class TransportPack {
         }
     
     public async getAllPacksWeight(units: string) {
-        let allPacks = await TransportPack.getAllPacks(this.pool, 5)
-        console.log(allPacks)
-        // cacluclate totla weight
-        let totalWeight = 50000 
-        let fromUnits = "OUNCES"
-        let rate = await TransportPack.convertUnits(this.pool, fromUnits, units)
-        console.log(`conversion rate:${rate}`)
-        let converted = (totalWeight * rate).toFixed(2)
-        return `${converted} ${units}` 
+        let allPacks = await TransportPack.getAllPacks(this.pool, 100)
+        var totalWeight = 0
+        if (allPacks.length != 0) {
+            // console.log(allPacks) // *** Sanity check *** 
+            
+            // Prepare records and find full scope of units
+            let allUnitsFound = [...new Set(allPacks.map((obj:any) => obj.unit))].map((obj:string) => obj) // Only unique units
+            // console.log(typeof allUnitsFound)  // ** Sanity check ***
+            
+            // Prepare conversion table
+            var conversionTable = {}; // remap
+            for (const myUnit of allUnitsFound) {
+                (conversionTable as any)[myUnit] = await TransportPack.convertUnits(this.pool, myUnit, units)}
+            // console.log(conversionTable) // ** Sanity check ***
+
+            // Iterate over all weights and caclulate total weight
+            let allWeightsArray = allPacks.map((obj:any) => [obj.weight, obj.unit]) // Collect only weights
+            // console.log(allWeightsArray) // ** Sanity check ***
+            for (const [weight, unit] of allWeightsArray) {
+                totalWeight += (weight * (conversionTable as any)[unit])
+                }
+            }
+        return `${totalWeight.toFixed(2)} ${units}` 
         }
 }
