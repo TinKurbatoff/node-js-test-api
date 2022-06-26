@@ -72,25 +72,22 @@ app.post('/organization', async (req: any, res: any) => {
   res.status(201).json({ result: 'OK', message: resultString, endpoint: '/organization' })
 })
 
-// app.get('/shipments/', (req: any, res: any) => {
-//   // console.log(req.body);
-//   console.log(`All shipments`)
-//   res.status(404).json({ result: 'FAIL', message: 'shipmentID is empty', endpoint: '/shipments/:shipmentId' })
-// })
 
 app.get('/packs/:unit?', async (req: any, res: any) => {
   // console.log(req.body);
-  let unitsSelected = req.params.unit
+  var limit: number = +req.query.limit || 1000
+  let unitsSelected = req.params.unit || "N/A"
   var resultMessage:string;
   console.log(`units:${unitsSelected}`)
   let allUnits= await TransportPack.getAllUnits(pool)
-  if (typeof unitsSelected == "undefined" || !allUnits.includes(unitsSelected)) {
+  if (!allUnits.includes(unitsSelected)) {
+    // Failed request — ask for details
     resultMessage = `select units from list:[${allUnits}]`
     } 
   else {
-    console.log(`units ${unitsSelected} requested!`)
-    resultMessage = await new TransportPack(pool).getAllPacksWeight(unitsSelected)
-    // resultMessage = `units ${unitsSelected} requested!`
+    // Find all packs and calculate total weight
+    console.log(`📦  Total weight in ${unitsSelected} requested!`)
+    resultMessage = await new TransportPack(pool).getAllPacksWeight(unitsSelected, limit)
     }
   console.log(`All packs`)
   res.status(200).json({ result: 'FAIL', message: resultMessage, endpoint: '/packs/:unit' })
@@ -105,11 +102,6 @@ app.get('/shipments/:shipmentId?', async (req: any, res: any) => {
   res.status(200).json({ result: 'OK', message: searchResult, endpoint: '/shipments/:shipmentId' })
 })
 
-// app.get('/organizations/', (req: any, res: any) => {
-//   // console.log(req.body);
-//   console.log(`All organizations`)
-//   res.status(404).json({ result: 'FAIL', message: 'organizationId is empty', endpoint: '/organizations/:organizationId' })
-// })
 
 app.get('/organizations/:organizationId?', async (req: any, res: any) => {
   // console.log(req.body);

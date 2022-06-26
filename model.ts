@@ -114,7 +114,7 @@ export class creteAllTables {
         // this.tablesSQL.forEach(async (queryString: string, key: string, map: any) => {
         let queryPool = dbHandlerClass.queryPool;  // Static method to query DB
         for (const [key, queryString] of Object.entries(this.tablesSQL)) {
-            console.log(`📦  ...Executing action: ${key}...`)
+            console.log(`🗄 🗂  ...Executing action: ${key}...`)
             await queryPool(this.conn, queryString, [])
             console.log(`✅  Executed action ${key} OKAY.`)
             }
@@ -377,8 +377,8 @@ export class TransportPack {
         return await dbHandlerClass.queryPool(dbConnector, queryString, [limit])        
         }
     
-    public async getAllPacksWeight(units: string) {
-        let allPacks = await TransportPack.getAllPacks(this.pool, 100)
+    public async getAllPacksWeight(units: string, limit: number = 100) {
+        let allPacks = await TransportPack.getAllPacks(this.pool, limit)
         var totalWeight = 0
         if (allPacks.length != 0) {
             // console.log(allPacks) // *** Sanity check *** 
