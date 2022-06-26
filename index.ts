@@ -94,7 +94,7 @@ app.get('/packs/:unit?', async (req: any, res: any) => {
     result = 'OK'
     }
   console.log(`All packs`)
-  res.status(httpCode).json({ result: result, message: resultMessage, endpoint: '/packs/:unit?limit=1000' })
+  res.status(httpCode).json({ result: result, message: resultMessage, endpoint: `/packs/:unit?limit=${limit}` })
 })
 
 
