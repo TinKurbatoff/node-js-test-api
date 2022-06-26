@@ -78,6 +78,8 @@ app.get('/packs/:unit?', async (req: any, res: any) => {
   var limit: number = +req.query.limit || 1000
   let unitsSelected = req.params.unit || "N/A"
   var resultMessage:string;
+  var httpCode: number = 401
+  var result: string = 'FAIL'
   console.log(`units:${unitsSelected}`)
   let allUnits= await TransportPack.getAllUnits(pool)
   if (!allUnits.includes(unitsSelected)) {
@@ -88,9 +90,11 @@ app.get('/packs/:unit?', async (req: any, res: any) => {
     // Find all packs and calculate total weight
     console.log(`📦  Total weight in ${unitsSelected} requested!`)
     resultMessage = await new TransportPack(pool).getAllPacksWeight(unitsSelected, limit)
+    httpCode = 200  
+    result = 'OK'
     }
   console.log(`All packs`)
-  res.status(200).json({ result: 'FAIL', message: resultMessage, endpoint: '/packs/:unit' })
+  res.status(httpCode).json({ result: result, message: resultMessage, endpoint: '/packs/:unit?limit=1000' })
 })
 
 
