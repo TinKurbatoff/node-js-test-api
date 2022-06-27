@@ -45,7 +45,7 @@ export class TransportPack {
     
     public async getAllPacksWeight(units: string, limit: number = 100) {
         let allPacks = await TransportPack.getAllPacks(this.pool, limit)
-        var totalWeight = 0
+        let totalWeight = 0
         if (allPacks.length != 0) {
             // console.log(allPacks) // *** Sanity check *** 
             
@@ -54,8 +54,8 @@ export class TransportPack {
             // console.log(typeof allUnitsFound)  // ** Sanity check ***
             
             // Prepare conversion table
-            var conversionTable: { [key: string]: number } = {}; // Conversion table for all founded packs
-            for (var myUnit of allUnitsFound) {
+            let conversionTable: { [key: string]: number } = {}; // Conversion table for all founded packs
+            for (const myUnit of allUnitsFound) {
                 conversionTable[myUnit] = await TransportPack.convertUnits(this.pool, myUnit, units)}
             // console.log(conversionTable) // ** Sanity check ***
 
@@ -64,7 +64,7 @@ export class TransportPack {
             // console.log(allWeightsArray) // ** Sanity check ***
             for (const [weight, unit] of allWeightsArray) {
                 // Iterate over all packs, add to total converting on the fly...
-                totalWeight += (weight * (conversionTable as any)[unit])
+                totalWeight += (weight * (conversionTable)[unit])
                 }
             }
         return {totalWeight: totalWeight.toFixed(2), units: units}  // limit two decimals

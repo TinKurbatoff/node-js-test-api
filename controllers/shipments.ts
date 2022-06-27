@@ -119,11 +119,11 @@ export class Shipment {
                             WHERE sh.referenceId = $1
                             ORDER BY org.id;`
         let queries = [queryStringSp, queryStringTp, queryStringOrgs]
-        var shipmentInfo = new Array()
+        let shipmentInfo = new Array()
         // queries.forEach(async (queryString: string) => {  // Parallel queries — will not use 
         console.log("———— GET FULL SHIPMENT INFO ———")
         for (let queryString of queries) {
-            var shipmentInfo1 = await queryPool(this.conn, queryString, [shipmentId]);
+            let shipmentInfo1 = await queryPool(this.conn, queryString, [shipmentId]);
             // console.log(shipmentInfo1);
             shipmentInfo.push(shipmentInfo1);
             }
