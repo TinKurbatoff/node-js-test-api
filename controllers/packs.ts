@@ -25,15 +25,16 @@ export class TransportPack {
                             WHERE unit_from IN ($1, $2) AND unit_to IN ($1, $2);`
         let conversionRate = await dbHandlerClass.queryPool(dbConnector, queryString, [unitFrom, unitTo])        
         // console.log(conversionRate) // *** Sanity Check ***
-        if (conversionRate.length == 0) { return 0 } // Not found!
+        if (conversionRate.length == 0) { return 0 // Not found!
         
         // Direct conversion from->to
-        else if (conversionRate[0].unit_from == unitFrom) {
-            return conversionRate[0].rate}
+        } else if (conversionRate[0].unit_from == unitFrom) {
+            return conversionRate[0].rate
         
         // Reverse conversion from<-to
-        else {
-            return (1 / conversionRate[0].rate)}
+        } else {
+            return (1 / conversionRate[0].rate)
+        }
     }
     
     static async getAllPacks(dbConnector:any, limit: number = 10) {
@@ -64,7 +65,7 @@ export class TransportPack {
             // console.log(allWeightsArray) // ** Sanity check ***
             for (const [weight, unit] of allWeightsArray) {
                 // Iterate over all packs, add to total converting on the fly...
-                totalWeight += (weight * (conversionTable)[unit])
+                totalWeight += (weight * conversionTable[unit])
                 }
             }
         return {totalWeight: totalWeight.toFixed(2), units: units}  // limit two decimals
