@@ -1,12 +1,14 @@
 import { dir } from "console";
-
 // import CommonJS modules
 const bodyParser = require("body-parser");
-var express = require('express')
+var express = require('express');
+var dotenv = require('dotenv');
+
+dotenv.config();
 
 /* ————————— EXPRESS WEB SERVER ———————————— */
 const app = express()  // Okay use `express` web server... 
-const port = 3000  // Port from environment in production
+const port = process.env.APP_PORT  // Port from environment in production
 
 // Connect to Database
 const pool = require("./database/connect")  

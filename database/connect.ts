@@ -1,16 +1,14 @@
 const pg = require("pg");
 
-const DATABASE = "logixboard_api"
-
 // var client = new pg.Client({  // ** Disabled **
-console.log(`🐌🐌🐌🦌   Connecting to database ${DATABASE}...`)
+console.log(`🐌🐌🐌🦌   Connecting to database ${process.env.DATABASE}...`)
 export const pool = new pg.Pool({ // Let use Pooling now
   // In production I will use environment variables
-  user: "logixboard", 
-  password: "logixboard!2000",
-  database: DATABASE,
-  port: 5432,
-  host: "localhost",
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DATABASE,
+  port: process.env.DB_PORT,
+  host: process.env.DB_HOST,
   ssl: false,
 });
 
