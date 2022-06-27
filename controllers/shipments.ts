@@ -124,17 +124,18 @@ export class Shipment {
         console.log("———— GET FULL SHIPMENT INFO ———")
         for (let queryString of queries) {
             let shipmentInfo1 = await queryPool(this.conn, queryString, [shipmentId]);
-            // console.log(shipmentInfo1);
+            console.log(shipmentInfo1);
             shipmentInfo.push(shipmentInfo1);
             }
         // console.log(shipmentInfo)  // ** Sanity check ***
         let parsedShipmentInfo = {};
         if (shipmentInfo[0].length > 0 ) {        
             // There is a record — Parse it!
-            this.id = shipmentInfo[0][0].id;
-            this.referenceId = shipmentInfo[0][0].referenceid;
+            this.id = shipmentInfo[0][0]?.id;
+            this.referenceId = shipmentInfo[0][0]?.referenceid;
             this.transportPacks = {'nodes': shipmentInfo[1]}
-            this.estimatedTimeArrival = shipmentInfo[0][0].estimatedtimearrival;
+            this.estimatedTimeArrival = shipmentInfo[0][0]?.estimatedtimearrival;
+            this.organizations = shipmentInfo[2]
             // Shipment data response example
             // {
             //   type: 'SHIPMENT',
@@ -145,6 +146,7 @@ export class Shipment {
 
             parsedShipmentInfo = { 'type': this.type,
                                     'referenceId': this.referenceId,
+                                    'organizations': this.organizations,
                                     'transportPacks': this.transportPacks,
                                     'estimatedTimeArrival': this.estimatedTimeArrival
                                 }
