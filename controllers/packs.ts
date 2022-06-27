@@ -59,7 +59,7 @@ export class TransportPack {
                 conversionTable[myUnit] = await TransportPack.convertUnits(this.pool, myUnit, units)}
             // console.log(conversionTable) // ** Sanity check ***
 
-            // Iterate over all weights and caclulate total weight
+            // Iterate over all weights and calculate total weight
             let allWeightsArray = allPacks.map((obj:any) => [obj.weight, obj.unit]) // Collect only weights
             // console.log(allWeightsArray) // ** Sanity check ***
             for (const [weight, unit] of allWeightsArray) {

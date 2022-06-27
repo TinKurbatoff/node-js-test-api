@@ -1,10 +1,11 @@
 // Import types
 import { Request, Response } from "express";
-// Importing the class that builds model of datatbase (Supported since NodeJS V13+)
+
+// Importing the class that builds model of database (both ways are supported since NodeJS V13+)
 const pool = require('../database/connect')
 
-// Controllers
-// import { Shipment, Organization, TransportPack } from "../model";
+// Data Controllers
+// import { Shipment, Organization, TransportPack } from "../";
 var Shipment = require('../controllers/shipments');
 var Organization = require('../controllers/organizations');
 var TransportPack = require('../controllers/packs');
@@ -15,12 +16,14 @@ exports.index = async function(req: Request, res: Response) {
     res.json({ info: 'Node.js, Express, and Postgres API for shipments' })
   }
   
+
+/* ——————————————————————— REQUESTS/RESPONSE VALIDATORS ——————————————————————*/
 // '/shipment'
 exports.post_shipment = async function(req: Request, res: Response) {
       /* Save new shipment to a database */
       const shipment = new Shipment(pool);
       console.log(req.body)
-      if ('referenceId' in req.body){
+      if (req.body?.referenceId) {
         let updateResult = await shipment.createShipment(req.body);
         console.log(`Updated field id:${updateResult} `);
         console.log(`———— POST REQUEST HANDLED OK BYE! BYE! ———— `);

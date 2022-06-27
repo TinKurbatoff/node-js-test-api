@@ -48,10 +48,10 @@ export class Shipment {
                            WHERE code = $1;`
             
             let ifOrg = await queryPool(this.conn, queryString, [org])
-            // clear all connected organizations
+            // Clear all connected organizations
             queryString = `DELETE FROM shipments_organizations WHERE shipment_id = $1;`
             await queryPool(this.conn, queryString, [this.id])
-            // Add new                
+            // Add a new m2m field               
             if (ifOrg.length !== 0) {
                 let organizationId = ifOrg[0].id
                 var queryString = `INSERT INTO shipments_organizations (shipment_id, organization_id) \
