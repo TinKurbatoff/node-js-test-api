@@ -4,7 +4,7 @@ export class Shipment {
     id: string;
     type: string = "SHIPMENT"
     referenceId: string;
-    organizations: Array<string>;
+    organizations = [];
     transportPacks: Object;
     estimatedTimeArrival: Date;
     conn: any;
@@ -135,7 +135,9 @@ export class Shipment {
             this.referenceId = shipmentInfo[0][0]?.referenceid;
             this.transportPacks = {'nodes': shipmentInfo[1]}
             this.estimatedTimeArrival = shipmentInfo[0][0]?.estimatedtimearrival;
-            this.organizations = shipmentInfo[2].values()
+            // this.organizations = [];
+            this.organizations = shipmentInfo[2].map( (obj: { code: string; }) => obj?.code);
+            // this.organizations = Object.values()
             // Shipment data response example
             // {
             //   type: 'SHIPMENT',
