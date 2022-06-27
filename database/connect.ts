@@ -22,3 +22,5 @@ pool.on('error', (err: any, client: any) => {
 
 // Connect to pool
 pool.connect()
+
+module.exports = pool

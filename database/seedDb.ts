@@ -1,6 +1,7 @@
+// User modules
 const dbHandlerClass = require('./dbHandler')
 
-export class creteAllTables {
+export class SeedAllTables {
     /* This class creates database from scratch */
     conn: any;
     tablesSQL: Object = {
@@ -109,3 +110,5 @@ export class creteAllTables {
             }
         }
 }
+
+module.exports = SeedAllTables;
