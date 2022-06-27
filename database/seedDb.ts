@@ -22,11 +22,11 @@ export class SeedAllTables {
                         $$ LANGUAGE plpgsql;`,
 
     // Clear DataBase
-    // "01.Drop shipments": 'DROP TABLE IF EXISTS shipments CASCADE;',
-    // "02.Drop transportPacks": 'DROP TABLE IF EXISTS transportPacks;',
-    // "03.Drop organizations": 'DROP TABLE IF EXISTS organizations CASCADE;',
-    // "04.Drop shipments_organizations": 'DROP TABLE IF EXISTS shipments_organizations;',
-    // "05.Drop unitConversions": 'DROP TABLE IF EXISTS unitConversions;',
+    "01.Drop shipments": 'DROP TABLE IF EXISTS shipments CASCADE;',
+    "02.Drop transportPacks": 'DROP TABLE IF EXISTS transportPacks;',
+    "03.Drop organizations": 'DROP TABLE IF EXISTS organizations CASCADE;',
+    "04.Drop shipments_organizations": 'DROP TABLE IF EXISTS shipments_organizations;',
+    "05.Drop unitConversions": 'DROP TABLE IF EXISTS unitConversions;',
     
     // Shipments 
     "06.Create shipments": 'CREATE TABLE IF NOT EXISTS shipments (\
