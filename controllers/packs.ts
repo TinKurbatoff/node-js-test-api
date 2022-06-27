@@ -1,4 +1,4 @@
-var dbHandlerClass = require('./database/dbHandler')
+var dbHandlerClass = require('../database/dbHandler')
 
 export class TransportPack {
     id: string

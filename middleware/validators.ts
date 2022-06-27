@@ -1,10 +1,13 @@
 // Import types
 import { Request, Response } from "express";
 // Importing the class that builds model of datatbase (Supported since NodeJS V13+)
-const pool = require("../database/connect")
+const pool = require('../database/connect')
 
 // Controllers
-import { Shipment, Organization, TransportPack } from "../model";
+// import { Shipment, Organization, TransportPack } from "../model";
+var Shipment = require('../controllers/shipments');
+var Organization = require('../controllers/organizations');
+var TransportPack = require('../controllers/packs');
 
 // API just presents itself (will populate with swagger)
 exports.index = async function(req: Request, res: Response) {

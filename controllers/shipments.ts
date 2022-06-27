@@ -1,4 +1,4 @@
-var dbHandlerClass = require('./database/dbHandler')
+var dbHandlerClass = require('../database/dbHandler')
 
 export class Shipment {
     id: string;
