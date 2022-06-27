@@ -9,7 +9,7 @@ export const pool = new pg.Pool({ // Let use Pooling now
   database: process.env.DATABASE,
   port: process.env.DB_PORT,
   host: process.env.DB_HOST,
-  ssl: false,
+  ssl: process.env.DB_SSL == "True",
 });
 
 // if a backend error or network problem happens
