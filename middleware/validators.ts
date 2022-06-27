@@ -48,7 +48,7 @@ exports.post_organization = async function(req: Request, res: Response) {
 // '/packs/:units?', 
 exports.get_packs = async function(req: any, res: Response) {
     // console.log(req.body);
-    const limit = req.query.limit > 0 ? req.query.limit : 1000
+    const limit = req.query?.limit > 0 ? req.query.limit : 1000
     const unitsSelected = req.params?.units
     let resultMessage:string;
     let httpCode: number = 401
@@ -80,7 +80,7 @@ exports.get_shipment = async function(req: Request, res: Response) {
     // console.log(req.body);
     console.log(`shipmentId:${req.params.shipmentId}`)
     const shipment = new Shipment(pool);
-    let searchResult = await shipment.findShipment(req.params.shipmentId)
+    let searchResult = await shipment.findShipment(req.params?.shipmentId)
     res.status(200).json({ result: 'OK', message: searchResult, endpoint: '/shipment/:shipmentId' })
   }
   
@@ -91,7 +91,8 @@ exports.get_organization = async function(req: Request, res: Response) {
     const organization = new Organization(pool);
     // console.log(req.body);
     // res.status(200).json({ result: 'OK', endpoint: '/organization' })
-    let searchResult = await organization.getOrganization(req.params.organizationId, "N/A")
-  
+    console.log(`Requested organization:${req.params?.organizationId}`)
+    let searchResult = await organization.getOrganization(req.params?.organizationId, req.params?.organizationId)
+    console.log(`Found:${searchResult.id}`)
     res.status(200).json({ result: 'OK', message: searchResult, endpoint: '/organization/:organizationId'  })
   }

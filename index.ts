@@ -1,8 +1,8 @@
 import { dir } from "console";
 // import CommonJS modules
 const bodyParser = require("body-parser");
-var express = require('express');
-var dotenv = require('dotenv');
+const express = require('express');
+const dotenv = require('dotenv');
 
 dotenv.config();
 

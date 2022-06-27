@@ -10,8 +10,9 @@ export class dbHandlerClass {
         .catch((err: { message: any; }) => {
             console.log(err.message)
             console.log(`⛔️  Query failed: ${queryString}`)
-            throw err;
+            // throw err;
             // console.log(err.stack)    
+            return [{}];
             })        
     }
 }
