@@ -1,10 +1,17 @@
 // User modules
 const dbHandlerClass = require('./dbHandler')
 
+/*
+This file creates a database from scratch.
+Database model is formed here
+*/
+
+
 export class SeedAllTables {
     /* This class creates database from scratch */
     conn: any;
     tablesSQL: Object = {
+    
     // Create Create/Update timestamps
     "Create Function": `CREATE OR REPLACE FUNCTION trigger_set_timestamp()
                         RETURNS TRIGGER AS $$
@@ -20,6 +27,7 @@ export class SeedAllTables {
     // "03.Drop organizations": 'DROP TABLE IF EXISTS organizations CASCADE;',
     // "04.Drop shipments_organizations": 'DROP TABLE IF EXISTS shipments_organizations;',
     // "05.Drop unitConversions": 'DROP TABLE IF EXISTS unitConversions;',
+    
     // Shipments 
     "06.Create shipments": 'CREATE TABLE IF NOT EXISTS shipments (\
         id SERIAL PRIMARY KEY \
@@ -32,6 +40,7 @@ export class SeedAllTables {
         BEFORE UPDATE ON shipments
         FOR EACH ROW
         EXECUTE PROCEDURE trigger_set_timestamp();`,
+    
     // All packs 
     "07.Create transportPacks": 'CREATE TABLE IF NOT EXISTS transportPacks (\
                 id SERIAL PRIMARY KEY \
@@ -44,6 +53,7 @@ export class SeedAllTables {
     BEFORE UPDATE ON transportPacks
     FOR EACH ROW
     EXECUTE PROCEDURE trigger_set_timestamp();`,
+    
     // Organizations   
     "08.Create organizations": 'CREATE TABLE IF NOT EXISTS organizations (\
                 id SERIAL PRIMARY KEY \
@@ -56,6 +66,7 @@ export class SeedAllTables {
                 BEFORE UPDATE ON organizations
                 FOR EACH ROW
                 EXECUTE PROCEDURE trigger_set_timestamp();`,
+    
     // Many 2 Many table              
     "09.Create shipments_organizations": 'CREATE TABLE IF NOT EXISTS shipments_organizations (\
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW() \

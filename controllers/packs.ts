@@ -67,7 +67,7 @@ export class TransportPack {
                 totalWeight += (weight * (conversionTable as any)[unit])
                 }
             }
-        return `${totalWeight.toFixed(2)} ${units}`  // limit two decimals
+        return {totalWeight: totalWeight.toFixed(2), units: units}  // limit two decimals
         }
 }
 

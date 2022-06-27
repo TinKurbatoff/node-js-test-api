@@ -23,7 +23,7 @@ exports.post_shipment = async function(req: Request, res: Response) {
       if ('referenceId' in req.body){
         let updateResult = await shipment.createShipment(req.body);
         console.log(`Updated field id:${updateResult} `);
-        console.log(`———— REQUEST HANDLED OK BYE! BYE! ———— `);
+        console.log(`———— POST REQUEST HANDLED OK BYE! BYE! ———— `);
         res.status(200).json({ result: 'OK', endpoint: '/shipment' });
       } else {
         res.status(401).json({ result: 'FAIL', message:'No referenceId', endpoint: '/shipment' });
@@ -38,7 +38,7 @@ exports.post_organization = async function(req: Request, res: Response) {
     let results = await organization.createOrganization(req.body)
     let resultString: string = `Organization added/updated with ID: ${results[0].id}` 
     console.log(`🏢 ${resultString}`);
-    console.log(`———— REQUEST HANDLED OK BYE! BYE! ———— `);
+    console.log(`———— POST REQUEST HANDLED OK BYE! BYE! ———— `);
     res.status(201).json({ result: 'OK', message: resultString, endpoint: '/organization' })
   }
   
@@ -50,6 +50,8 @@ exports.get_packs = async function(req: any, res: Response) {
     let resultMessage:string;
     let httpCode: number = 401
     let result: string = 'FAIL'
+    let totalWeight
+    let units = ""
     console.log(`units:${unitsSelected}`)
     const allUnits= await TransportPack.getAllUnits(pool) // Get all units available in DB
     if (!allUnits.includes(unitsSelected)) {
@@ -59,12 +61,15 @@ exports.get_packs = async function(req: any, res: Response) {
     } else {
       // Find all packs and calculate total weight
       console.log(`📦  Total weight in ${unitsSelected} requested!`)
-      resultMessage = await new TransportPack(pool).getAllPacksWeight(unitsSelected, limit)
+      let resultInfo = await new TransportPack(pool).getAllPacksWeight(unitsSelected, limit)
+      totalWeight = resultInfo.totalWeight
+      units = resultInfo.units
+      resultMessage = `${totalWeight} ${units}`
       httpCode = 200  
       result = 'OK'
       console.log(`All packs total weight ${resultMessage}`)
     }
-    res.status(httpCode).json({ result: result, message: resultMessage, endpoint: `/packs/:unit?limit=${limit}` })
+    res.status(httpCode).json({ result: result, message: resultMessage, totalWeight: totalWeight, units: units, endpoint: `/packs/:unit?limit=${limit}` })
   }
   
 // '/shipment/:shipmentId?',
@@ -73,7 +78,7 @@ exports.get_shipment = async function(req: Request, res: Response) {
     console.log(`shipmentId:${req.params.shipmentId}`)
     const shipment = new Shipment(pool);
     let searchResult = await shipment.findShipment(req.params.shipmentId)
-    res.status(200).json({ result: 'OK', message: searchResult, endpoint: '/shipments/:shipmentId' })
+    res.status(200).json({ result: 'OK', message: searchResult, endpoint: '/shipment/:shipmentId' })
   }
   
 

@@ -19,6 +19,6 @@ router.post('/organization/', organization_controller.post_organization);
 router.get('/organization/:organizationId?', organization_controller.get_organization);
   
 // Packs
-router.get('/packs/:unit?', packs_controller.get_packs);
+router.get('/packs/:units?', packs_controller.get_packs);
 
 module.exports = router;
