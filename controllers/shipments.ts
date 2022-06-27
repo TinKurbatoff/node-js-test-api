@@ -135,7 +135,7 @@ export class Shipment {
             this.referenceId = shipmentInfo[0][0]?.referenceid;
             this.transportPacks = {'nodes': shipmentInfo[1]}
             this.estimatedTimeArrival = shipmentInfo[0][0]?.estimatedtimearrival;
-            this.organizations = shipmentInfo[2]
+            this.organizations = shipmentInfo[2].values()
             // Shipment data response example
             // {
             //   type: 'SHIPMENT',

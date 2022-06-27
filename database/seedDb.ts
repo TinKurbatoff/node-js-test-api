@@ -10,8 +10,16 @@ Database model is formed here
 export class SeedAllTables {
     /* This class creates database from scratch */
     conn: any;
-    tablesSQL: Object = {
-    
+    dropAllTables = {
+            // Clear DataBase
+            "01.Drop shipments": 'DROP TABLE IF EXISTS shipments CASCADE;',
+            "02.Drop transportPacks": 'DROP TABLE IF EXISTS transportPacks;',
+            "03.Drop organizations": 'DROP TABLE IF EXISTS organizations CASCADE;',
+            "04.Drop shipments_organizations": 'DROP TABLE IF EXISTS shipments_organizations;',
+            "05.Drop unitConversions": 'DROP TABLE IF EXISTS unitConversions;',
+        }
+
+    tablesSQL: Object = {    
     // Create Create/Update timestamps
     "Create Function": `CREATE OR REPLACE FUNCTION trigger_set_timestamp()
                         RETURNS TRIGGER AS $$
@@ -20,13 +28,6 @@ export class SeedAllTables {
                             RETURN NEW;
                         END;
                         $$ LANGUAGE plpgsql;`,
-
-    // Clear DataBase
-    "01.Drop shipments": 'DROP TABLE IF EXISTS shipments CASCADE;',
-    "02.Drop transportPacks": 'DROP TABLE IF EXISTS transportPacks;',
-    "03.Drop organizations": 'DROP TABLE IF EXISTS organizations CASCADE;',
-    "04.Drop shipments_organizations": 'DROP TABLE IF EXISTS shipments_organizations;',
-    "05.Drop unitConversions": 'DROP TABLE IF EXISTS unitConversions;',
     
     // Shipments 
     "06.Create shipments": 'CREATE TABLE IF NOT EXISTS shipments (\
@@ -108,6 +109,11 @@ export class SeedAllTables {
     public async createTables() {
         // this.tablesSQL.forEach(async (queryString: string, key: string, map: any) => {
         let queryPool = dbHandlerClass.queryPool;  // Static method to query DB
+        if (process.env.START_DROP_TABLES == "True"){
+            for (const [key, queryString] of Object.entries(this.dropAllTables)) {
+                await queryPool(this.conn, queryString, [])
+                console.log(`🗑 🧨  ${key}`)
+                }}
         for (const [key, queryString] of Object.entries(this.tablesSQL)) {
             console.log(`🗄 🗂  ...Executing action: ${key}...`)
             await queryPool(this.conn, queryString, [])
