@@ -14,8 +14,8 @@ export class Organization {
     public async createOrganization(organizationInfo: {id: string, code: string}): Promise<any> {    
         let queryPool = dbHandlerClass.queryPool;  // Static method to query DB
         console.log(organizationInfo)
-        const {id, code } = organizationInfo
-        let upsertString: string = `INSERT INTO organizations (uuid, code) \
+        const {id, code} = organizationInfo
+        const upsertString = `INSERT INTO organizations (uuid, code) \
                                     VALUES ($1, $2) \
                                     ON CONFLICT (uuid) \
                                     DO UPDATE SET code = $2 \
