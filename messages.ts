@@ -30,6 +30,7 @@ export const messages = [
     }
   },
   {
+    "requestType": "POST",
     "type": "SHIPMENT",
     "referenceId": "S00001009",
     "organizations": [],
@@ -46,6 +47,7 @@ export const messages = [
     }
   },
   {
+    "requestType": "POST",
     "type": "SHIPMENT",
     "referenceId": "S00001142",
     "organizations": ["FMT"],

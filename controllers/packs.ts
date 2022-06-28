@@ -51,7 +51,7 @@ export class TransportPack {
             // console.log(allPacks) // *** Sanity check *** 
             
             // Prepare records and find full scope of units
-            let allUnitsFound = [...new Set(allPacks.map((obj:any) => obj.unit))].map((obj:string) => obj) // Only unique units, then cast values to string
+            let allUnitsFound = [...new Set(allPacks.map((obj:{unit:string}) => obj?.unit))].map((obj:string) => obj) // Only unique units, then cast values to string
             // console.log(typeof allUnitsFound)  // ** Sanity check ***
             
             // Prepare conversion table
@@ -61,7 +61,7 @@ export class TransportPack {
             // console.log(conversionTable) // ** Sanity check ***
 
             // Iterate over all weights and calculate total weight
-            let allWeightsArray = allPacks.map((obj:any) => [obj.weight, obj.unit]) // Collect only weights
+            let allWeightsArray = allPacks.map((obj:{weight: number, unit:string}) => [obj.weight, obj.unit]) // Collect only weights
             // console.log(allWeightsArray) // ** Sanity check ***
             for (const [weight, unit] of allWeightsArray) {
                 // Iterate over all packs, add to total converting on the fly...

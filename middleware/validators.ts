@@ -81,7 +81,7 @@ exports.get_shipment = async function(req: Request, res: Response) {
     console.log(`shipmentId:${req.params.shipmentId}`)
     const shipment = new Shipment(pool);
     let searchResult = await shipment.findShipment(req.params?.shipmentId)
-    res.status(200).json({ result: 'OK', message: searchResult, endpoint: '/shipment/:shipmentId' })
+    res.status(200).json({ result: 'OK', shipment: searchResult, endpoint: '/shipment/:shipmentId' })
   }
   
 
@@ -94,5 +94,5 @@ exports.get_organization = async function(req: Request, res: Response) {
     console.log(`Requested organization:${req.params?.organizationId}`)
     let searchResult = await organization.getOrganization(req.params?.organizationId, req.params?.organizationId)
     console.log(`Found:${searchResult.id}`)
-    res.status(200).json({ result: 'OK', message: searchResult, endpoint: '/organization/:organizationId'  })
+    res.status(200).json({ result: 'OK', organization: searchResult, endpoint: '/organization/:organizationId'  })
   }
